@@ -30,7 +30,7 @@ if($method == 'POST'){
     //Data source
     $response->source = "webhook";
     // convert object into json
-    //echo json_encode($response);
+    echo json_encode($response);
     
 } else {
         echo "Method not allowed";

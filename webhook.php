@@ -1,70 +1,41 @@
 <?php
-// webhook.php
-//
-// Dialogflow calls this service using POST request.
-// Place this file in the document root of your server. Your server must be accessible at the below URL:
-// http://<hostname>/webhook.php
-//
-// This service just extracts the intent and parameters (entities) from the user supplied text 
-// and returns to Dialogflow.
-//
+
 $method = $_SERVER['REQUEST_METHOD'];
-//
-// Process only when request method is POST
-//
-
-
 
 require __DIR__ . '/vendor/autoload.php';
 
 
-
-
 if($method == 'POST'){
-        $requestBody = file_get_contents('php://input');
-        $json = json_decode($requestBody);
-        $text = $json->result->resolvedQuery;
-        $date = (!empty($json->result->parameters->date)) ? $json->result->parameters->date : '';
-        $time  = (!empty($json->result->parameters->time)) ? $json->result->parameters->time : '';
-        $any  = (!empty($json->result->parameters->any)) ? $json->result->parameters->any : '';
-        $reason  = (!empty($json->result->parameters->reason)) ? $json->result->parameters->reason : '';
-        $intent   = (!empty($json->result->metadata->intentName)) ? $json->result->metadata->intentName : '';
+        
+    //get the json
+    $requestBody = file_get_contents('php://input');
+    //decode the json into object
+    $json = json_decode($requestBody);
     
-        
-        
-        $responseText = prepareResponse($intent, $text, $date, $any, $time, $reason);
-        $response = new \stdClass();
-        $response->speech = $responseText;
-        $response->displayText = $responseText;
-        $response->source = "webhook";
-        echo json_encode($response);
-}
-else
-{
+    $date = (!empty($json->result->parameters->date)) ? $json->result->parameters->date : '';
+    $time  = (!empty($json->result->parameters->time)) ? $json->result->parameters->time : '';
+    $any  = (!empty($json->result->parameters->any)) ? $json->result->parameters->any : '';
+    $reason  = (!empty($json->result->parameters->reason)) ? $json->result->parameters->reason : '';
+    $intent   = (!empty($json->result->metadata->intentName)) ? $json->result->metadata->intentName : '';
+
+    
+    
+    $responseText = prepareResponse($intent, $date, $any, $time, $reason);
+    // create object
+    $response = new \stdClass();
+    // response spoken by bot
+    $response->speech = $responseText;
+    // response written by bot
+    $response->displayText = $responseText;
+    //Data source
+    $response->source = "webhook";
+    // convert object into json
+    //echo json_encode($response);
+    
+} else {
         echo "Method not allowed";
 }
-function prepareResponse($intent, $text, $date, $any, $time, $reason)
-    {
-    
-    /*$tijd = $time;
-    $dt = new DateTime($tijd);
-    $dt->add(new DateInterval('PT1H'));*/
-    
-    //date_add($time, date_interval_create_from_date_string('1 hour'));
-    
-    $s = $time;
-    
-    $form = date_create_from_format('H:i:s', $s);
-    
-    $form->add(new DateInterval('PT1H'));
-    
-    $result = $form->format('H:i:s');
 
-    
-    /**
- * Returns an authorized API client.
- * @return Google_Client the authorized client object
- */
 function getClient()
 {
     $client = new Google_Client();
@@ -109,8 +80,25 @@ function getClient()
     return $client;
 }
 
+function prepareResponse($intent, $date, $any, $time, $reason)
+{
+    
+    /*$tijd = $time;
+    $dt = new DateTime($tijd);
+    $dt->add(new DateInterval('PT1H'));*/
+    
+    //date_add($time, date_interval_create_from_date_string('1 hour'));
+    
+    $s = $time;
+    
+    $form = date_create_from_format('H:i:s', $s);
+    
+    $form->add(new DateInterval('PT1H'));
+    
+    $result = $form->format('H:i:s');
 
-// Get the API client and construct the service object.
+
+// Get the API client and create service object and event.
 $client = getClient();
 $service = new Google_Service_Calendar($client);
 
@@ -140,7 +128,7 @@ $event = new Google_Service_Calendar_Event(array(
 
 $calendarId = 'primary';
 $event = $service->events->insert($calendarId, $event);
-//printf('Event created: %s\n', $event->htmlLink);
+//printf('Event created: ', $event->htmlLink);
 
 
     
